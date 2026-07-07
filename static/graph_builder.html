@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: ui-sans-serif, system-ui, sans-serif; background: #fff; padding: 8px; }
+#toolbar { display: flex; gap: 6px; padding: 0 0 8px; flex-wrap: wrap; align-items: center; }
+button {
+    padding: 5px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: 1.5px solid #d1d5db; background: #fff; color: #111827;
+}
+button:hover { background: #f3f4f6; }
+button.active { background: #2563eb !important; color: #fff !important; border-color: #2563eb !important; }
+button.danger { color: #dc2626; }
+button.danger:hover { background: #fef2f2; }
+button.confirm { background: #2563eb; color: #fff; border-color: #2563eb; }
+button.confirm:hover { background: #1d4ed8; }
+#pill {
+    font-size: 12px; color: #6b7280; margin-left: auto;
+    padding: 3px 9px; background: #f3f4f6; border-radius: 6px; border: 1px solid #e5e7eb;
+}
+#net {
+    width: 100%; height: 310px; background: #fafafa;
+    border: 1.5px solid #d1d5db; border-radius: 10px;
+}
+#status { font-size: 12px; color: #059669; margin-top: 6px; min-height: 16px; font-weight: 600; }
+#out-wrap { margin-top: 8px; display: none; }
+#out-label { font-size: 11px; color: #6b7280; margin-bottom: 3px; }
+#out {
+    width: 100%; height: 65px; font-size: 11px; font-family: monospace;
+    border: 1px solid #d1d5db; border-radius: 6px; background: #f9fafb;
+    color: #111827; padding: 5px; resize: none;
+}
+#copy-btn {
+    margin-top: 4px; padding: 3px 10px; font-size: 12px;
+    border-radius: 5px; border: 1px solid #d1d5db; background: #fff; cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+    <button id="btn-node">+ Node</button>
+    <button id="btn-edge">+ Edge</button>
+    <button class="danger" id="btn-del">Delete</button>
+    <button class="danger" id="btn-clear">Clear</button>
+    <button class="confirm" id="btn-confirm">Confirm ✓</button>
+    <span id="pill">select a mode</span>
+</div>
+
+<div id="net"></div>
+<div id="status"></div>
+
+<div id="out-wrap">
+    <div id="out-label">Copy this JSON and paste it into the field below the canvas:</div>
+    <textarea id="out" readonly></textarea>
+    <button id="copy-btn">Copy JSON</button>
+</div>
+
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+<script>
+window.addEventListener('load', function() {
+
+    if (typeof vis === 'undefined') {
+        document.body.innerHTML = '<p style="color:#dc2626;padding:12px;font-size:13px;">vis-network failed to load. Check internet connection and refresh.</p>';
+        return;
+    }
+
+    var params = new URLSearchParams(window.location.search);
+    var WEIGHTED = params.get('weighted') === 'true';
+
+    var nc = 0, mode = null, src = null;
+    var N = new vis.DataSet();
+    var E = new vis.DataSet();
+
+    var network = new vis.Network(
+        document.getElementById('net'),
+        { nodes: N, edges: E },
+        {
+            physics: false,
+            interaction: { hover: true, dragNodes: true, dragView: true, multiselect: false },
+            nodes: {
+                shape: 'ellipse', size: 18,
+                font: { size: 13, color: '#1e40af' },
+                borderWidth: 1.5,
+                color: {
+                    background: '#dbeafe', border: '#3b82f6',
+                    highlight: { background: '#bfdbfe', border: '#2563eb' }
+                }
+            },
+            edges: {
+                font: { size: 11, color: '#6b7280', align: 'middle' },
+                color: { color: '#9ca3af', highlight: '#374151' },
+                width: 1.5, smooth: false
+            }
+        }
+    );
+
+    var pill     = document.getElementById('pill');
+    var statusEl = document.getElementById('status');
+
+    function setMode(m) {
+        mode = m; src = null;
+        network.unselectAll();
+        document.getElementById('btn-node').className = m === 'node' ? 'active' : '';
+        document.getElementById('btn-edge').className = m === 'edge' ? 'active' : '';
+        pill.textContent = m === 'node'
+            ? 'click canvas to place node'
+            : 'click source node, then target';
+    }
+
+    network.on('click', function(p) {
+        if (mode === 'node') {
+            if (!p.nodes.length && !p.edges.length) {
+                N.add({ id: nc, label: String(nc), x: p.pointer.canvas.x, y: p.pointer.canvas.y });
+                nc++;
+            }
+        } else if (mode === 'edge') {
+            if (p.nodes.length === 1) {
+                var v = p.nodes[0];
+                if (src === null) {
+                    src = v;
+                    network.selectNodes([v]);
+                    pill.textContent = 'now click target node';
+                } else {
+                    if (v !== src) {
+                        var lbl = '';
+                        if (WEIGHTED) {
+                            var w = window.prompt('Edge weight:', '1');
+                            if (w === null) { src = null; return; }
+                            lbl = w.trim();
+                        }
+                        E.add({ from: src, to: v, label: lbl });
+                    }
+                    src = null;
+                    network.unselectAll();
+                    pill.textContent = 'click source node, then target';
+                }
+            }
+        }
+    });
+
+    function delSel() {
+        var s = network.getSelection();
+        N.remove(s.nodes);
+        E.remove(s.edges);
+    }
+
+    function clearAll() {
+        N.clear(); E.clear();
+        nc = 0; src = null; mode = null;
+        document.getElementById('btn-node').className = '';
+        document.getElementById('btn-edge').className = '';
+        pill.textContent = 'select a mode';
+        document.getElementById('out-wrap').style.display = 'none';
+        statusEl.textContent = '';
+    }
+
+    function confirmGraph() {
+        var nl = N.get(), el = E.get();
+        if (!nl.length) { window.alert('Add at least one node first.'); return; }
+
+        var idxMap = {};
+        nl.forEach(function(n, i) { idxMap[n.id] = i; });
+        var sz = nl.length;
+
+        var mat = [];
+        for (var r = 0; r < sz; r++) {
+            mat.push([]);
+            for (var c = 0; c < sz; c++) mat[r].push(0);
+        }
+
+        el.forEach(function(e) {
+            var i = idxMap[e.from], j = idxMap[e.to];
+            var w = (WEIGHTED && e.label) ? (parseFloat(e.label) || 1) : 1;
+            mat[i][j] = w;
+            mat[j][i] = w;
+        });
+
+        var pos = {};
+        nl.forEach(function(nd, i) {
+            pos[i] = [
+                parseFloat((nd.x / 100).toFixed(2)),
+                parseFloat((-nd.y / 100).toFixed(2))
+            ];
+        });
+
+        var payload = JSON.stringify({ matrix: mat, pos: pos });
+        document.getElementById('out').value = payload;
+        document.getElementById('out-wrap').style.display = 'block';
+        statusEl.textContent = '✓ ' + sz + ' nodes · ' + el.length + ' edges — copy JSON below';
+    }
+
+    function copyOut() {
+        var t = document.getElementById('out');
+        t.select();
+        document.execCommand('copy');
+        var b = document.getElementById('copy-btn');
+        b.textContent = 'Copied!';
+        setTimeout(function() { b.textContent = 'Copy JSON'; }, 1500);
+    }
+
+    document.getElementById('btn-node').addEventListener('click', function() { setMode('node'); });
+    document.getElementById('btn-edge').addEventListener('click', function() { setMode('edge'); });
+    document.getElementById('btn-del').addEventListener('click', delSel);
+    document.getElementById('btn-clear').addEventListener('click', clearAll);
+    document.getElementById('btn-confirm').addEventListener('click', confirmGraph);
+    document.getElementById('copy-btn').addEventListener('click', copyOut);
+
+});
+</script>
+</body>
+</html>
