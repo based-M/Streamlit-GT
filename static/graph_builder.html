@@ -58,8 +58,7 @@ button.confirm:hover { background: #1d4ed8; }
     <button id="copy-btn">Copy JSON</button>
 </div>
 
-<script src="vis-network.min.js"></script>
-
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 <script>
 window.addEventListener('load', function() {
 
@@ -68,9 +67,7 @@ window.addEventListener('load', function() {
         return;
     }
 
-    var params = new URLSearchParams(window.location.search);
-    var WEIGHTED = params.get('weighted') === 'true';
-
+    var WEIGHTED = false;
     var nc = 0, mode = null, src = null;
     var N = new vis.DataSet();
     var E = new vis.DataSet();
