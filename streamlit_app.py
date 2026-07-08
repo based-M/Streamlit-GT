@@ -30,7 +30,6 @@ DATA_EXTENSIONS = {".txt", ".json", ".csv"}
 #   "degree_sequence" – only a degree sequence list   (exp 5)
 #   None              – no custom-input section yet
 
-st.write("Static serving:", st.get_option("server.enableStaticServing"))
 
 EXP_CONFIG: dict[str, dict] = {
     "1":  {"input_type": "graph", "graph_count": 1, "weighted": False},
@@ -566,7 +565,8 @@ def _render_visjs_canvas(canvas_key: str, weighted: bool = False) -> tuple[bool,
 
     json_input_key = f"visjs_json_{canvas_key}"
     weighted_param = "true" if weighted else "false"
-    src_url = f"{BASE_DIR}/static/graph_builder.html?weighted={weighted_param}&key={canvas_key}"
+    src_url = f"/static/graph_builder.html?weighted={weighted_param}&key={canvas_key}"
+    st.write("Static serving:", st.get_option("server.enableStaticServing"))
     st.iframe(src_url, height=460)
     st.caption("After clicking Confirm above, copy the JSON and paste it here:")
     json_text = st.text_area(
