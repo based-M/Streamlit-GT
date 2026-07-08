@@ -569,7 +569,7 @@ def _render_visjs_canvas(canvas_key: str, weighted: bool = False) -> tuple[bool,
     html_path = BASE_DIR / "static" / "graph_builder.html"
     html = html_path.read_text(encoding="utf-8")
     html = html.replace(
-    "var params = new URLSearchParams(window.location.search);\n    var WEIGHTED = params.get('weighted') === 'true';",
+    "var WEIGHTED = false;",
     f"var WEIGHTED = {str(weighted).lower()};"
     )
     st.components.v1.html(
