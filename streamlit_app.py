@@ -567,8 +567,7 @@ def _render_visjs_canvas(canvas_key: str, weighted: bool = False) -> tuple[bool,
     json_input_key = f"visjs_json_{canvas_key}"
     weighted_param = "true" if weighted else "false"
     src_url = f"app/static/graph_builder.html?weighted={weighted_param}&key={canvas_key}"
-    st.components.v1.iframe(src_url, height=460, scrolling=False)
-
+    st.iframe(src_url, height=460, scrolling=False)
     st.caption("After clicking Confirm above, copy the JSON and paste it here:")
     json_text = st.text_area(
         label="graph_json",
