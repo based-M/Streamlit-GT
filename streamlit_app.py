@@ -30,6 +30,8 @@ DATA_EXTENSIONS = {".txt", ".json", ".csv"}
 #   "degree_sequence" – only a degree sequence list   (exp 5)
 #   None              – no custom-input section yet
 
+st.write("Static serving:", st.get_option("server.enableStaticServing"))
+
 EXP_CONFIG: dict[str, dict] = {
     "1":  {"input_type": "graph", "graph_count": 1, "weighted": False},
     "2":  {"input_type": "graph", "graph_count": 3, "weighted": False},
