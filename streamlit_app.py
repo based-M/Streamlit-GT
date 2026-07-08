@@ -566,11 +566,17 @@ def _render_visjs_canvas(canvas_key: str, weighted: bool = False) -> tuple[bool,
     import numpy as np
 
     json_input_key = f"visjs_json_{canvas_key}"
-    weighted_param = "true" if weighted else "false"
-    src_url = f"/static/graph_builder.html?weighted={weighted_param}&key={canvas_key}"
-    st.write("Static serving:", st.get_option("server.enableStaticServing"))
-    print(f"Static serving: {st.get_option("server.enableStaticServing")}")
-    st.iframe(src_url, height=460)
+    html_path = BASE_DIR / "static" / "graph_builder.html"
+    html = html_path.read_text(encoding="utf-8")
+    html = html.replace(
+    "var params = new URLSearchParams(window.location.search);\n    var WEIGHTED = params.get('weighted') === 'true';",
+    f"var WEIGHTED = {str(weighted).lower()};"
+    )
+    st.components.v1.html(
+    html,
+    height=460,
+    scrolling=False,
+    )
     st.caption("After clicking Confirm above, copy the JSON and paste it here:")
     json_text = st.text_area(
         label="graph_json",
