@@ -24,6 +24,8 @@ IGNORE_DIRS = {".venv", "__pycache__", ".git", ".gemini"}
 IGNORE_FILES = {"streamlit_app.py", "graph_script_template.py", "__init__.py"}
 DATA_EXTENSIONS = {".txt", ".json", ".csv"}
 
+st.write("To C or not to C that is the question")
+
 
 # input_type controls what the "Run with custom graph" section renders:
 #   "graph"           – adjacency matrix + pos dict  (most experiments)
