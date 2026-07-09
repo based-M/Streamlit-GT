@@ -12,7 +12,7 @@ def run(graphs, positions):
     #graphs = [G1, G2, G3]
 
     for i, (ax, G) in enumerate(zip(axes.flatten(), Gr)):
-        nx.draw(G, pos[i], ax=ax, with_labels=True, node_size=500)
+        nx.draw(G, positions[i], ax=ax, with_labels=True, node_size=500)
 
     plt.show()
 
