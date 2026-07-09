@@ -81,7 +81,7 @@ def iter_files(base_dir: Path, extensions: set[str]) -> list[Path]:
 
 def find_projects(base_dir: Path) -> dict[str, Path]:
     projects: dict[str, Path] = {}
-    for entry in sorted(basefor entry in sorted(base_dir.iterdir(), key=lambda e: (not e.name.isdigit(), int(e.name) if e.name.isdigit() else e.name,),):_dir.iterdir(), key=lambda e: (not e.name.isdigit(), e.name)):
+    for entry in sorted(base_dir.iterdir(), key=lambda e: (not e.name.isdigit(), int(e.name) if e.name.isdigit() else float("inf"), e.name)):
         if not entry.is_dir():
             continue
         if entry.name in IGNORE_DIRS:
